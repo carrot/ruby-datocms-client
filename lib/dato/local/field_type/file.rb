@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 require 'imgix'
+require 'open-uri'
+require 'ensure/encoding'
 
 module Dato
   module Local
@@ -34,13 +36,19 @@ module Dato
         def url(opts = {})
           file.to_url(opts)
         end
+        
+        def source
+          open(url) { |c| c.read }.ensure_encoding('UTF-8', external_encoding: :sniff, invalid_characters: :transcode)
+        end
 
         def to_hash(*_args)
-          {
+          res = {
             format: format,
             size: size,
             url: url
           }
+          res['source'] = source if (@format === 'svg')
+          return res
         end
       end
     end
